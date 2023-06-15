@@ -12,8 +12,9 @@ const getUserById = (req, res) => {
       res.status(200).send(user);
     })
     .catch((err) => {
-      if (err.name === 'CastError') {return res.status(NOT_FOUND_ERROR_CODE).send({message: NOT_FOUND_ERROR_MESSAGE})}
-      else{return res.status(GENERAL_ERROR_CODE).send({message: GENERAL_ERROR_MESSAGE, err: err.message, stack: err.stack})}
+      if (err.name === 'CastError') return res.status(NOT_FOUND_ERROR_CODE).send({message: NOT_FOUND_ERROR_MESSAGE});
+      if (err.name === 'ValidationError') return res.status(UNVALID_DATA_ERROR_CODE).send({message: UNVALID_DATA_ERROR_MESSAGE});
+      if (err.name !== 'ValidationError' && err.name !== 'CastError') return res.status(GENERAL_ERROR_CODE).send({message: GENERAL_ERROR_MESSAGE, err: err.message, stack: err.stack})
     })
 
 };
