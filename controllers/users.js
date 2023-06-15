@@ -21,8 +21,9 @@ const getUserById = (req, res) => {
 
 const updateUser = (req, res) => {
   const { name, about } = req.body;
-  userModel.findByIdAndUpdate(req.params.user_id, { name, about }, { new: true })
+  userModel.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
     .then((user) => {
+      console.log(user)
       res.status(200).send(user);
     })
     .catch((err) => {
@@ -34,7 +35,7 @@ const updateUser = (req, res) => {
 
 const updateAvatar = (req, res) => {
   const { avatar } = req.body.avatar;
-  userModel.findByIdAndUpdate(req.params.user_id, avatar)
+  userModel.findByIdAndUpdate(req.user._id, avatar)
     .then((user) => {
       res.status(200).send(user);
     })
