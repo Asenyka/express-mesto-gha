@@ -2,29 +2,39 @@ const userModel = require('../models/user');
 const UNVALID_DATA_ERROR_CODE  = 400;
 const NOT_FOUND_ERROR_CODE = 404;
 const GENERAL_ERROR_CODE = 500;
+const OK = 200;
 const NOT_FOUND_ERROR_MESSAGE = 'Запрашиваемый пользователь не найден';
 const UNVALID_DATA_ERROR_MESSAGE = 'Переданы некорректные данные';
 const GENERAL_ERROR_MESSAGE = 'Произошла ошибка';
 
 const getUserById = (req, res) => {
-  userModel.findById(req.params.user_id)
+  let userId = req.params.user_id;
+  if(!userId.match(/^[0-9a-fA-F]{24}$/)){
+    return res.status(UNVALID_DATA_ERROR_CODE).send({message: UNVALID_DATA_ERROR_MESSAGE})
+  }
+  userModel.findById(userId)
     .then((user) => {
-      res.status(200).send(user);
-    })
+      if (user===null){
+        return res.status(NOT_FOUND_ERROR_CODE).send({message: NOT_FOUND_ERROR_MESSAGE})
+      }else{
+      res.status(200).send(user)}
+      }
+    )
     .catch((err) => {
-      console.log(err.name)
-      if (err.name === 'CastError' || 'ValidationError') return res.status(UNVALID_DATA_ERROR_CODE).send({message: UNVALID_DATA_ERROR_MESSAGE});
+      if (err.name === 'CastError') return res.status(NOT_FOUND_ERROR_CODE).send({message: NOT_FOUND_ERROR_MESSAGE});
+      if (err.name === 'ValidationError') return res.status(UNVALID_DATA_ERROR_CODE).send({message: UNVALID_DATA_ERROR_MESSAGE});
       if (err.name !== 'ValidationError' && err.name !== 'CastError') return res.status(GENERAL_ERROR_CODE).send({message: GENERAL_ERROR_MESSAGE, err: err.message, stack: err.stack})
-    })
-
+})
 };
 
 const updateUser = (req, res) => {
   const { name, about } = req.body;
-  userModel.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
-    .then((user) => {
-      res.status(200).send(user);
-    })
+  userModel.findByIdAndUpdate(req.user._id, { name, about}, { new: true })
+  .then((user) => {
+    console.log(user)
+    if (user===null){return res.status(NOT_FOUND_ERROR_CODE).send({message: NOT_FOUND_ERROR_MESSAGE})}
+    else{res.status(200).send(user)}
+      })
     .catch((err) => {
       console.log(err);
       if (err.name === 'CastError') return res.status(NOT_FOUND_ERROR_CODE).send({message: NOT_FOUND_ERROR_MESSAGE});
@@ -60,8 +70,9 @@ const getUsers = (req, res) => {
 
 const createUser = (req, res) => {
   userModel.create(req.body)
+
     .then((user) => {
-      res.status(201).send(user);
+      res.status(OK).send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {return res.status(UNVALID_DATA_ERROR_CODE).send({message: UNVALID_DATA_ERROR_MESSAGE})}
