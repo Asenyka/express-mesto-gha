@@ -32,29 +32,25 @@ const createCard = (req, res) => {
   if (err.name !== 'ValidationError' && err.name !== 'CastError') return res.status(GENERAL_ERROR_CODE).send({message: GENERAL_ERROR_MESSAGE, err: err.message, stack: err.stack})
     });
 };
-const deleteCard = (req, res) => {
-  cardModel.findById(req.params.cardId)
-  .then((card)=>{
-    if (card.owner === req.user._id) {
-      cardModel.remove(card)
-      .then(getCards(req,res))
-      .catch((err)=>{
-  if (err.name === 'CastError') {res.status(NOT_FOUND_ERROR_CODE).send({message: NOT_FOUND_ERROR_MESSAGE})}
-  else{
-    return res.status(GENERAL_ERROR_CODE).send({message: GENERAL_ERROR_MESSAGE, err: err.message, stack: err.stack})
-  }
-      })
+const deleteCard = (req, res) =>
+{
+  const cardId = req.params.cardId;
+if(!cardId.match(/^[0-9a-fA-F]{24}$/)){
+  return res.status(UNVALID_DATA_ERROR_CODE).send({message: UNVALID_DATA_ERROR_MESSAGE})
+}
+  cardModel.findByIdAndDelete(req.params.cardId)
+    .then((card)=>{
+    if (card===null){
+      return res.status(NOT_FOUND_ERROR_CODE).send({message: NOT_FOUND_ERROR_MESSAGE})
     }else{
-      res.status(400).send({ message: 'Удаление карточек, созданных другими пользователями, невозможно'});
-    }
-  })
+  getCards(req,res)}})
 .catch((err) => {
   if (err.name === 'CastError') {res.status(NOT_FOUND_ERROR_CODE).send({message: NOT_FOUND_ERROR_MESSAGE})}
   else{
     return res.status(GENERAL_ERROR_CODE).send({message: GENERAL_ERROR_MESSAGE, err: err.message, stack: err.stack})
   }
     });
-};
+  }
 const likeCard = (req, res) =>{
 const cardId = req.params.cardId;
 if(!cardId.match(/^[0-9a-fA-F]{24}$/)){
