@@ -1,4 +1,3 @@
-/* eslint-disable eslint no-underscore-dangle */
 const mongoose = require('mongoose');
 
 const userSchema = mongoose.Schema({
