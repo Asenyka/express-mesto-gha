@@ -29,14 +29,12 @@ const getUserById = (req, res) => {
 
 const updateUser = (req, res) => {
   const { name, about } = req.body;
-  userModel.findByIdAndUpdate(req.user._id, { name, about}, { new: true })
+  userModel.findByIdAndUpdate(req.user._id, { name, about}, { new: true, runValidators: true })
   .then((user) => {
-    console.log(user)
     if (user===null){return res.status(NOT_FOUND_ERROR_CODE).send({message: NOT_FOUND_ERROR_MESSAGE})}
     else{res.status(200).send(user)}
       })
     .catch((err) => {
-      console.log(err);
       if (err.name === 'CastError') return res.status(NOT_FOUND_ERROR_CODE).send({message: NOT_FOUND_ERROR_MESSAGE});
       if (err.name === 'ValidationError') return res.status(UNVALID_DATA_ERROR_CODE).send({message: UNVALID_DATA_ERROR_MESSAGE});
       if (err.name !== 'ValidationError' && err.name !== 'CastError') return res.status(GENERAL_ERROR_CODE).send({message: GENERAL_ERROR_MESSAGE, err: err.message, stack: err.stack})
