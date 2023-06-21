@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const userModel = require('../models/user');
 
 const UNVALID_DATA_ERROR_CODE = 400;
@@ -99,7 +101,14 @@ const getUsers = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  userModel.create(req.body)
+  bcrypt.hash(req.body.password, 10)
+    .then((hash) => userModel.create({
+      name: req.body.name,
+      about: req.body.about,
+      avatar: req.body.avatar,
+      email: req.body.email,
+      password: hash,
+    }))
 
     .then((user) => {
       res.status(OK).send(user);
@@ -113,10 +122,28 @@ const createUser = (req, res) => {
         .send({ message: GENERAL_ERROR_MESSAGE, err: err.message, stack: err.stack });
     });
 };
+const login = (req, res) => {
+  const { email, password } = req.body;
+  userModel.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'key', { expiresIn: '7d' });
+      // res.cookie('jwt', token, {
+      // maxAge: 604800000,
+      //  httpOnly: true,}).end();
+
+      res.send({ token });
+    })
+    .catch((err) => {
+      res
+        .status(401)
+        .send({ message: err.message });
+    });
+};
 module.exports = {
   getUserById,
   getUsers,
   createUser,
   updateUser,
   updateAvatar,
+  login,
 };

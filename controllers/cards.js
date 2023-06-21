@@ -41,6 +41,7 @@ const createCard = (req, res) => {
     });
 };
 const deleteCard = (req, res) => {
+  const userId = req.user._id;
   const { cardId } = req.params;
   if (!cardId.match(/^[0-9a-fA-F]{24}$/)) {
     return res.status(UNVALID_DATA_ERROR_CODE)
@@ -51,6 +52,10 @@ const deleteCard = (req, res) => {
       if (card === null) {
         return res.status(NOT_FOUND_ERROR_CODE)
           .send({ message: NOT_FOUND_ERROR_MESSAGE });
+      }
+      if (!card.owner.equals(userId)) {
+        return res.status(401)
+          .send({ message: 'Можно удалить только созданные Вами карточки' });
       }
       return getCards(req, res);
     })
