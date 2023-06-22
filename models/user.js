@@ -25,6 +25,7 @@ const userSchema = mongoose.Schema({
   email: {
     type: String,
     required: true,
+    unique: true,
     validate: {
       validator: (v) => validator.isEmail(v),
       message: 'Введите корректный e-mail',
@@ -36,7 +37,7 @@ const userSchema = mongoose.Schema({
     select: false,
   },
 });
-userSchema.statics.findUserByCredentials = function (email, password) {
+userSchema.statics.findUserByCredentials = function fname(email, password) {
   return this.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {

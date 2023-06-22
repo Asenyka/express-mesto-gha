@@ -4,7 +4,9 @@ const handleAutherror = (res) => {
   res.status(401).send({ message: 'Требуется авторизация' });
 };
 
-const extractBearerToken = (header) => header.replace('Bearer', '');
+const extractBearerToken = (header) => {
+  header.replace('Bearer', '');
+};
 
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
