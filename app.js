@@ -15,10 +15,14 @@ app.use('/users', auth, router);
 app.use('/cards', auth, router);
 app.use(errors());
 app.use((err, req, res, next) => {
-  res.status(err.statusCode).send({ message: err.message });
   if (!err.statusCode) {
     res.status(500).send({ message: 'Ошибка сервера' });
   }
+  if (err.statusCode === 400) {
+    res.status(400).send({ message: 'Отправлены некорректные данные' });
+  }
+  res.status(err.statusCode).send({ message: err.message });
+
   next();
 });
 app.listen(3000, () => {

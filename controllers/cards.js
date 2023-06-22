@@ -1,137 +1,67 @@
 const cardModel = require('../models/card');
+const NotFoundError = require('../errors/not-found-error');
+const AuthorizationError = require('../errors/auth-error');
 
-const UNVALID_DATA_ERROR_CODE = 400;
-const NOT_FOUND_ERROR_CODE = 404;
-const GENERAL_ERROR_CODE = 500;
 const OK = 200;
-const NOT_FOUND_ERROR_MESSAGE = 'Запрашиваемая карточка не найдена';
-const UNVALID_DATA_ERROR_MESSAGE = 'Переданы некорректные данные';
-const GENERAL_ERROR_MESSAGE = 'Произошла ошибка';
 
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   cardModel.find({})
     .then((cards) => {
       res.status(OK).send(cards);
     })
-    .catch((err) => {
-      res.status(GENERAL_ERROR_CODE)
-        .send({ message: GENERAL_ERROR_MESSAGE, err: err.message, stack: err.stack });
-    });
+    .catch(next);
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const card = req.body;
   card.owner = req.user._id;
   cardModel.create(card)
     .then((newCard) => {
-      res.status(201).send(newCard);
+      res.status(OK).send(newCard);
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return res.status(NOT_FOUND_ERROR_CODE)
-          .send({ message: NOT_FOUND_ERROR_MESSAGE });
-      }
-      if (err.name === 'ValidationError') {
-        return res.status(UNVALID_DATA_ERROR_CODE)
-          .send({ message: UNVALID_DATA_ERROR_MESSAGE });
-      }
-
-      return res.status(GENERAL_ERROR_CODE)
-        .send({ message: GENERAL_ERROR_MESSAGE, err: err.message, stack: err.stack });
-    });
+    .catch(next);
 };
-const deleteCard = (req, res) => {
+const deleteCard = (req, res, next) => {
   const userId = req.user._id;
   const { cardId } = req.params;
-  if (!cardId.match(/^[0-9a-fA-F]{24}$/)) {
-    return res.status(UNVALID_DATA_ERROR_CODE)
-      .send({ message: UNVALID_DATA_ERROR_MESSAGE });
-  }
   return cardModel.findByIdAndDelete(cardId)
     .then((card) => {
       if (card === null) {
-        return res.status(NOT_FOUND_ERROR_CODE)
-          .send({ message: NOT_FOUND_ERROR_MESSAGE });
+        throw new NotFoundError('Запрашиваемая карточка не найдена');
       }
       if (!card.owner.equals(userId)) {
-        return res.status(401)
-          .send({ message: 'Можно удалить только созданные Вами карточки' });
+        throw new AuthorizationError('Можно удалить только созданные Вами карточки');
       }
       return getCards(req, res);
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(NOT_FOUND_ERROR_CODE)
-          .send({ message: NOT_FOUND_ERROR_MESSAGE });
-      } return res.status(GENERAL_ERROR_CODE)
-        .send({ message: GENERAL_ERROR_MESSAGE, err: err.message, stack: err.stack });
-    });
+    .catch(next);
 };
 
-const likeCard = (req, res) => {
-  const { cardId } = req.params;
-  if (!cardId.match(/^[0-9a-fA-F]{24}$/)) {
-    return res.status(UNVALID_DATA_ERROR_CODE)
-      .send({ message: UNVALID_DATA_ERROR_MESSAGE });
-  }
-  return cardModel.findByIdAndUpdate(
-    req.params.cardId,
-    { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
-    { new: true },
-  )
-    .then((card) => {
-      if (card === null) {
-        return res.status(NOT_FOUND_ERROR_CODE)
-          .send({ message: NOT_FOUND_ERROR_MESSAGE });
-      }
-      return res.status(OK).send(card);
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return res.status(NOT_FOUND_ERROR_CODE)
-          .send({ message: NOT_FOUND_ERROR_MESSAGE });
-      }
-      if (err.name === 'ValidationError') {
-        return res.status(UNVALID_DATA_ERROR_CODE)
-          .send({ message: UNVALID_DATA_ERROR_MESSAGE });
-      }
+const likeCard = (req, res, next) => cardModel.findByIdAndUpdate(
+  req.params.cardId,
+  { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
+  { new: true },
+)
+  .then((card) => {
+    if (card === null) {
+      throw new NotFoundError('Запрашиваемая карточка не найдена');
+    }
+    return res.status(OK).send(card);
+  })
+  .catch(next);
 
-      return res.status(GENERAL_ERROR_CODE)
-        .send({ message: GENERAL_ERROR_MESSAGE, err: err.message, stack: err.stack });
-    });
-};
-
-const dislikeCard = (req, res) => {
-  const { cardId } = req.params;
-  if (!cardId.match(/^[0-9a-fA-F]{24}$/)) {
-    return res.status(UNVALID_DATA_ERROR_CODE)
-      .send({ message: UNVALID_DATA_ERROR_MESSAGE });
-  }
-  return cardModel.findByIdAndUpdate(
-    req.params.cardId,
-    { $pull: { likes: req.user._id } }, // убрать _id из массива
-    { new: true },
-  )
-    .then((card) => {
-      if (card === null) {
-        return res.status(NOT_FOUND_ERROR_CODE)
-          .send({ message: NOT_FOUND_ERROR_MESSAGE });
-      }
-      return res.status(OK).send(card);
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return res.status(NOT_FOUND_ERROR_CODE)
-          .send({ message: NOT_FOUND_ERROR_MESSAGE });
-      }
-      if (err.name === 'ValidationError') {
-        return res.status(UNVALID_DATA_ERROR_CODE)
-          .send({ message: UNVALID_DATA_ERROR_MESSAGE });
-      }
-      return res.status(GENERAL_ERROR_CODE)
-        .send({ message: GENERAL_ERROR_MESSAGE, err: err.message, stack: err.stack });
-    });
-};
+const dislikeCard = (req, res, next) => cardModel.findByIdAndUpdate(
+  req.params.cardId,
+  { $pull: { likes: req.user._id } }, // убрать _id из массива
+  { new: true },
+)
+  .then((card) => {
+    if (card === null) {
+      throw new NotFoundError('Запрашиваемая карточка не найдена');
+    }
+    return res.status(OK).send(card);
+  })
+  .catch(next);
 module.exports = {
   getCards,
   createCard,

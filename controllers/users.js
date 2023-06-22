@@ -51,6 +51,11 @@ const getUsers = (req, res, next) => {
     })
     .catch(next);
 };
+const getCurrentUser = (req, res, next) => {
+  userModel.findById(req.user._id)
+    .then((user) => res.status(OK).send({ user }))
+    .catch(next);
+};
 
 const createUser = (req, res, next) => {
   bcrypt.hash(req.body.password, 10)
@@ -87,4 +92,5 @@ module.exports = {
   updateUser,
   updateAvatar,
   login,
+  getCurrentUser,
 };
