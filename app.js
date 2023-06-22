@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { errors } = require('celebrate');
 const router = require('./routes');
 const { createUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
@@ -12,9 +13,12 @@ app.post('/signup', createUser);
 app.post('/signin', login);
 app.use('/users', auth, router);
 app.use('/cards', auth, router);
-
-app.use((req, res, next) => {
-  res.status(404).send({ message: 'Запрашиваемая страница не найдена' });
+app.use(errors());
+app.use((err, req, res, next) => {
+  res.status(err.statusCode).send({ message: err.message });
+  if (!err.statusCode) {
+    res.status(500).send({ message: 'Ошибка сервера' });
+  }
   next();
 });
 app.listen(3000, () => {
