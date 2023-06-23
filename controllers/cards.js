@@ -1,6 +1,6 @@
 const cardModel = require('../models/card');
 const NotFoundError = require('../errors/not-found-error');
-const AuthorizationError = require('../errors/auth-error');
+const ForbiddenError = require('../errors/forbidden-error');
 
 const OK = 200;
 
@@ -30,7 +30,7 @@ const deleteCard = (req, res, next) => {
         throw new NotFoundError('Запрашиваемая карточка не найдена');
       }
       if (!card.owner.equals(userId)) {
-        throw new AuthorizationError('Можно удалить только созданные Вами карточки');
+        throw new ForbiddenError('Можно удалить только созданные Вами карточки');
       }
       return getCards(req, res);
     })

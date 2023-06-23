@@ -7,7 +7,7 @@ const InvalidDataError = require('../errors/invalid-data-error');
 const OK = 200;
 
 const getUserById = (req, res, next) => {
-  const userId = req.params.user_id;
+  const { userId } = req.params;
   if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
     throw new InvalidDataError('Передан некорректный id пользователя');
   }
