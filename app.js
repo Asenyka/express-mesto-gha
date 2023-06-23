@@ -9,9 +9,7 @@ mongoose.connect('mongodb://127.0.0.1/mestodb');
 const app = express();
 app.use(express.json());
 app.use('/', router);
-app.use(() => {
-  throw new NotFoundError('Запрашиваемая страница не найдена');
-});
+app.use(() => new NotFoundError('Запрашиваемая страница не найдена'));
 app.use(errors());
 app.use((err, req, res, next) => {
   if (err.code === 11000) {

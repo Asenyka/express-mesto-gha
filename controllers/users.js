@@ -9,12 +9,12 @@ const OK = 200;
 const getUserById = (req, res, next) => {
   const { userId } = req.params;
   if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
-    throw new InvalidDataError('Передан некорректный id пользователя');
+    return new InvalidDataError('Передан некорректный id пользователя');
   }
   return userModel.findById(userId)
     .then((user) => {
       if (user === null) {
-        throw new NotFoundError('Пользователь с запрашиваемым id не найден');
+        return new NotFoundError('Пользователь с запрашиваемым id не найден');
       }
       return res.status(OK).send(user);
     })
@@ -26,7 +26,7 @@ const updateUser = (req, res, next) => {
   userModel.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (user === null) {
-        throw new NotFoundError('Пользователь с запрашиваемым id не найден');
+        return new NotFoundError('Пользователь с запрашиваемым id не найден');
       }
       return res.status(OK).send(user);
     })
@@ -38,8 +38,9 @@ const updateAvatar = (req, res, next) => {
   userModel.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (user === null) {
-        throw new InvalidDataError('Передан некорректный id пользователя');
-      } else { res.status(200).send(user); }
+        return new InvalidDataError('Передан некорректный id пользователя');
+      }
+      return res.status(200).send(user);
     })
     .catch(next);
 };

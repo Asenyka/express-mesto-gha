@@ -22,6 +22,10 @@ const userSchema = mongoose.Schema({
     type: String,
     required: false,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    validate: {
+      validator: (v) => validator.isURL(v),
+      message: 'Введите корректную ссылку',
+    },
   },
   email: {
     type: String,
@@ -46,9 +50,8 @@ userSchema.statics.findUserByCredentials = function fname(email, password) {
     .then((user) => bcrypt.compare(password, user.password)
       .then((matched) => {
         if (!matched) {
-          throw new AuthorizationError('Неправильные почта или пароль');
+          return new AuthorizationError('Неправильные почта или пароль');
         }
-        console.log(user._id);
         return user;
       }));
 };
