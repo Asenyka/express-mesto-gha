@@ -68,7 +68,9 @@ const createUser = (req, res, next) => {
     }))
 
     .then((user) => {
-      res.status(OK).send(user);
+      res.status(OK).send({
+        name: user.name, about: user.about, _id: user._id, avatar: user.avatar, email: user.email,
+      });
     })
     .catch(next);
 };
@@ -76,7 +78,7 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
   userModel.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'key', { expiresIn: '7d' });
+      const token = jwt.sign({ _id: user._id }, 'secret key');
       // res.cookie('jwt', token, {
       // maxAge: 604800000,
       //  httpOnly: true,}).end();
