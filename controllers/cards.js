@@ -32,8 +32,10 @@ const deleteCard = (req, res, next) => {
       if (!card.owner.equals(userId)) {
         return next(new ForbiddenError('Можно удалить только созданные Вами карточки'));
       }
-      card.delete();
-      return getCards(req, res);
+      return cardModel.findByIdAndRemove(cardId);
+    })
+    .then(() => {
+      getCards(req, res);
     })
     .catch(next);
 };
