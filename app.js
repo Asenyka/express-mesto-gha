@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const { errors } = require('celebrate');
 const router = require('./routes');
 
-
 const ConflictError = require('./errors/conflict-error');
 
 mongoose.connect('mongodb://127.0.0.1/mestodb');
