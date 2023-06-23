@@ -27,10 +27,10 @@ const deleteCard = (req, res, next) => {
   cardModel.findById(cardId)
     .then((card) => {
       if (card === null) {
-        return new NotFoundError('Запрашиваемая карточка не найдена');
+        return next(new NotFoundError('Запрашиваемая карточка не найдена'));
       }
       if (!card.owner.equals(userId)) {
-        return new ForbiddenError('Можно удалить только созданные Вами карточки');
+        return next(new ForbiddenError('Можно удалить только созданные Вами карточки'));
       }
       card.delete();
       return getCards(req, res);
@@ -45,7 +45,7 @@ const likeCard = (req, res, next) => cardModel.findByIdAndUpdate(
 )
   .then((card) => {
     if (card === null) {
-      return new NotFoundError('Запрашиваемая карточка не найдена');
+      return next(new NotFoundError('Запрашиваемая карточка не найдена'));
     }
     return res.status(OK).send(card);
   })
@@ -58,7 +58,7 @@ const dislikeCard = (req, res, next) => cardModel.findByIdAndUpdate(
 )
   .then((card) => {
     if (card === null) {
-      return new NotFoundError('Запрашиваемая карточка не найдена');
+      return next(new NotFoundError('Запрашиваемая карточка не найдена'));
     }
     return res.status(OK).send(card);
   })
